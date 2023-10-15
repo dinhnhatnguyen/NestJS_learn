@@ -4,18 +4,23 @@ import {
   Delete,
   Get,
   HttpCode,
+  Logger,
+  NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateEventDto } from './create-event.dto';
-import { UpdateEventDto } from './update-events.dto';
-import { Event } from './event.entity';
-import { Like, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Like, MoreThan, Repository } from 'typeorm';
+import { CreateEventDto } from './create-event.dto';
+import { Event } from './event.entity';
+import { UpdateEventDto } from './update-event.dto';
 
 @Controller('/events')
 export class EventsController {
+  private readonly logger = new Logger(EventsController.name);
+
   constructor(
     @InjectRepository(Event)
     private readonly repository: Repository<Event>,
@@ -23,7 +28,10 @@ export class EventsController {
 
   @Get()
   async findAll() {
-    return await this.repository.find();
+    this.logger.log(`Hit the findAll route`);
+    const events = await this.repository.find();
+    this.logger.debug(`Found ${events.length} events`);
+    return events;
   }
 
   @Get('/practice')
@@ -46,10 +54,30 @@ export class EventsController {
     });
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id) {
-    return await this.repository.findOne(id);
+  @Get('practice2')
+  async practice2() {
+    return await this.repository.findOne({
+      // Because this is TypeORM 10 uses a different syntax than this course
+      where: { id: 1 },
+      relations: ['attendees'],
+    });
   }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    // console.log(typeof id);
+    const event = await this.repository.findOneBy({ id: id });
+
+    if (!event) {
+      throw new NotFoundException();
+    }
+
+    return event;
+  }
+
+  // You can also use the @UsePipes decorator to enable pipes.
+  // It can be done per method, or for every method when you
+  // add it at the controller level.
   @Post()
   async create(@Body() input: CreateEventDto) {
     return await this.repository.save({
@@ -58,9 +86,15 @@ export class EventsController {
     });
   }
 
+  // Create new ValidationPipe to specify validation group inside @Body
+  // new ValidationPipe({ groups: ['update'] })
   @Patch(':id')
   async update(@Param('id') id, @Body() input: UpdateEventDto) {
     const event = await this.repository.findOne(id);
+
+    if (!event) {
+      throw new NotFoundException();
+    }
 
     return await this.repository.save({
       ...event,
@@ -68,10 +102,16 @@ export class EventsController {
       when: input.when ? new Date(input.when) : event.when,
     });
   }
+
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id) {
     const event = await this.repository.findOne(id);
+
+    if (!event) {
+      throw new NotFoundException();
+    }
+
     await this.repository.remove(event);
   }
 }
