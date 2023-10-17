@@ -1,10 +1,10 @@
-import { Strategy } from 'passport-local';
-import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { Strategy } from 'passport-local';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
