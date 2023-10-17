@@ -5,6 +5,9 @@ import { AttendeeAnswerEnum } from './attendee.entity';
 import { Event } from './event.entity';
 import { ListEvents, WhenEventFilter } from './input/list.events';
 import { PaginateOptions, paginate } from 'src/pagination/paginator';
+import { CreateEventDto } from './input/create-event.dto';
+import { User } from 'src/auth/user.entity';
+import { UpdateEventDto } from './input/update-event.dto';
 
 @Injectable()
 export class EventsService {
@@ -106,6 +109,25 @@ export class EventsService {
     this.logger.debug(query.getSql());
 
     return await query.getOne();
+  }
+
+  public async createEvent(input: CreateEventDto, user: User): Promise<Event> {
+    return await this.eventsRepository.save({
+      ...input,
+      organizer: user,
+      when: new Date(input.when),
+    });
+  }
+
+  public async updatedEvent(
+    event: Event,
+    input: UpdateEventDto,
+  ): Promise<Event> {
+    return await this.eventsRepository.save({
+      ...event,
+      ...input,
+      when: input.when ? new Date(input.when) : event.when,
+    });
   }
 
   public async deleteEvent(id: number): Promise<DeleteResult> {
