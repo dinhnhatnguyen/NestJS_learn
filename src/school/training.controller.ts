@@ -3,8 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subject } from './subject.entity';
 import { Teacher } from './teacher.entity';
-// import { User } from 'src/auth/user.entity';
-// import { Profile } from 'src/auth/profile.entity';
 
 @Controller('school')
 export class TrainingController {
@@ -20,7 +18,7 @@ export class TrainingController {
     // const subject = new Subject();
     // subject.name = 'Math';
 
-    const subject = await this.subjectRepository.findOneBy({ id: 3 });
+    const subject = await this.subjectRepository.findOne({ where: { id: 3 } });
 
     // const teacher1 = new Teacher();
     // teacher1.name = 'John Doe';
@@ -31,14 +29,16 @@ export class TrainingController {
     // subject.teachers = [teacher1, teacher2];
     // await this.teacherRepository.save([teacher1, teacher2]);
 
-    /*Using One to One */
+    // How to use One to One
     // const user = new User();
     // const profile = new Profile();
+
     // user.profile = profile;
     // user.profile = null;
+    // Save the user here
 
-    const teacher1 = await this.teacherRepository.findOneBy({ id: 3 });
-    const teacher2 = await this.teacherRepository.findOneBy({ id: 4 });
+    const teacher1 = await this.teacherRepository.findOne({ where: { id: 5 } });
+    const teacher2 = await this.teacherRepository.findOne({ where: { id: 6 } });
 
     return await this.subjectRepository
       .createQueryBuilder()
